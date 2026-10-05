@@ -1,0 +1,1541 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ระบบงานโรงเรียนบ้านหมอ "พัฒนานุกูล"</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      fontFamily: { sans: ['Sarabun','system-ui','sans-serif'] },
+      colors: {
+        primary: '#0C7C82',
+        primary2: '#35B4B0',
+        teal2: '#26A69A',
+        lime2: '#AED581',
+        amber2: '#FFCA28',
+        orange2: '#FF8A65',
+        red2: '#EF5350',
+        purple2: '#4A2C6D',
+        darkred: '#D32F2F',
+        orange3: '#F57C00',
+        yellow2: '#FBC02D',
+        blue2: '#0288D1'
+      }
+    }
+  }
+}
+</script>
+<style>
+  * { -webkit-tap-highlight-color: transparent; }
+  html, body { font-family: 'Sarabun', system-ui, sans-serif; }
+  body { background: #f6f8fa; }
+
+  .lbl { display:block; font-size:.8125rem; font-weight:600; color:#475569; margin-bottom:.375rem; }
+  .inp { width:100%; padding:.625rem .875rem; border:1px solid #e2e8f0; border-radius:.75rem; font-size:.875rem; outline:none; transition:.2s; background:#f8fafc; font-family:inherit; color:#1e293b; }
+  .inp:focus { border-color:#35B4B0; background:#fff; box-shadow:0 0 0 3px rgba(53,180,176,.16); }
+  .inp::placeholder { color:#94a3b8; }
+
+  .skeleton { background:linear-gradient(90deg,#eef2f5 25%,#f7fafc 50%,#eef2f5 75%); background-size:200% 100%; animation:shimmer 1.4s ease-in-out infinite; border-radius:.75rem; }
+  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+
+  .scrollbar-thin::-webkit-scrollbar { width:6px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background:#cbd5e1; border-radius:99px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background:transparent; }
+
+  .fade-in { animation: fadeIn .35s ease both; }
+  @keyframes fadeIn { from{opacity:0; transform:translateY(8px)} to{opacity:1; transform:none} }
+
+  .pop-in { animation: popIn .22s cubic-bezier(.34,1.56,.64,1) both; }
+  @keyframes popIn { from{opacity:0; transform:scale(.94) translateY(10px)} to{opacity:1; transform:none} }
+
+  .badge { display:inline-flex; align-items:center; gap:.25rem; padding:.15rem .55rem; border-radius:999px; font-size:.6875rem; font-weight:600; line-height:1.5; }
+
+  .swal2-popup { font-family:'Sarabun',sans-serif !important; border-radius:1.25rem !important; }
+  .swal2-title { font-weight:700 !important; }
+
+  .no-scroll { overflow:hidden; }
+
+  @media (max-width: 1023px) {
+    body { padding-bottom: env(safe-area-inset-bottom); }
+  }
+</style>
+</head>
+<body class="text-slate-700">
+
+<!-- ================= APP SHELL ================= -->
+<div id="app">
+
+  <!-- Overlay -->
+  <div id="overlay" onclick="closeSidebar()" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 hidden lg:hidden"></div>
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside id="sidebar"
+    class="fixed inset-y-0 left-0 z-50 w-[280px] bg-white border-r border-slate-100 flex flex-col
+           -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-out shadow-2xl lg:shadow-none">
+
+    <!-- Brand -->
+    <div class="px-4 py-4 border-b border-slate-100 shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="relative shrink-0">
+          <div id="logoBox" class="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#0C7C82] to-[#35B4B0] flex items-center justify-center overflow-hidden shadow-md ring-2 ring-white">
+          </div>
+          <button id="logoUploadBtn" onclick="document.getElementById('logoInput').click()"
+            class="hidden absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-amber2 text-slate-800 flex items-center justify-center shadow ring-2 ring-white hover:scale-110 transition">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z"/><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0z"/></svg>
+          </button>
+          <input type="file" id="logoInput" accept="image/png,image/jpeg,image/jpg" class="hidden" onchange="handleLogoUpload(event)">
+        </div>
+        <div class="min-w-0">
+          <h1 class="text-[13px] font-bold text-primary leading-tight">ระบบงานโรงเรียนบ้านหมอ</h1>
+          <p class="text-[11px] text-slate-400 font-medium">"พัฒนานุกูล"</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Menu -->
+    <nav id="menu" class="flex-1 overflow-y-auto scrollbar-thin px-3 py-3 space-y-1"></nav>
+
+    <!-- Auth area -->
+    <div id="authArea" class="p-3 border-t border-slate-100 shrink-0"></div>
+  </aside>
+
+  <!-- ============ MAIN ============ -->
+  <div class="lg:pl-[280px] min-h-screen flex flex-col">
+
+    <!-- Mobile header -->
+    <header class="lg:hidden sticky top-0 z-30 h-14 bg-white/85 backdrop-blur-xl border-b border-slate-200/80 flex items-center gap-3 px-3">
+      <button onclick="openSidebar()" class="w-10 h-10 rounded-xl bg-slate-100 active:scale-95 transition flex items-center justify-center text-primary">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/></svg>
+      </button>
+      <div class="min-w-0 flex-1">
+        <p class="text-[13px] font-bold text-primary truncate">ระบบงานโรงเรียนบ้านหมอ "พัฒนานุกูล"</p>
+      </div>
+      <div id="mobileAuth" class="shrink-0"></div>
+    </header>
+
+    <main id="content" class="flex-1 px-3 sm:px-6 pt-4 sm:pt-6 pb-28 lg:pb-8 max-w-[1400px] w-full mx-auto"></main>
+
+    <footer class="px-4 pb-24 lg:pb-8 pt-2 text-center text-xs sm:text-sm text-slate-400">
+      <div class="max-w-[1400px] mx-auto border-t border-slate-200/70 pt-5">
+        พัฒนาโดย <span class="font-semibold text-primary">กลุ่มงานเทคโนโลยี พ.ก.</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- ============ MOBILE BOTTOM NAV ============ -->
+  <nav id="mobileNav" class="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/92 backdrop-blur-xl border-t border-slate-200/80"
+       style="padding-bottom: env(safe-area-inset-bottom);">
+    <div id="mobileNavInner" class="grid grid-cols-5 gap-0.5 px-1.5 py-1.5"></div>
+  </nav>
+</div>
+
+<!-- ============ MODAL ============ -->
+<div id="modal" class="fixed inset-0 z-[90] hidden">
+  <div class="absolute inset-0 bg-slate-900/55 backdrop-blur-sm" onclick="closeModal()"></div>
+  <div class="relative flex min-h-full items-center justify-center p-3 sm:p-4">
+    <div id="modalCard" class="pop-in bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[92vh] flex flex-col overflow-hidden">
+      <div class="flex items-center justify-between px-5 py-4 border-b border-slate-100 shrink-0">
+        <h3 id="modalTitle" class="font-bold text-slate-800 text-base"></h3>
+        <button onclick="closeModal()" class="w-9 h-9 rounded-xl hover:bg-slate-100 flex items-center justify-center text-slate-400 transition">
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="modalBody" class="p-5 overflow-y-auto scrollbar-thin"></div>
+      <div id="modalFooter" class="px-5 py-4 border-t border-slate-100 flex justify-end gap-2 shrink-0 bg-slate-50/60"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ FULLSCREEN VIEWER ============ -->
+<div id="viewer" class="fixed inset-0 z-[100] hidden flex-col bg-slate-100">
+  <header class="h-14 shrink-0 bg-gradient-to-r from-[#0C7C82] to-[#35B4B0] text-white flex items-center gap-2 px-3 sm:px-4 shadow-lg">
+    <button onclick="closeViewer()" class="w-10 h-10 rounded-xl hover:bg-white/15 active:scale-95 flex items-center justify-center transition">
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+    </button>
+    <h3 id="viewerTitle" class="flex-1 font-semibold text-sm sm:text-base truncate"></h3>
+    <a id="viewerExternal" href="#" target="_blank" rel="noopener"
+       class="hidden items-center gap-1.5 px-3 py-2 rounded-xl bg-white/15 hover:bg-white/25 text-xs font-medium transition">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/></svg>
+      <span class="hidden sm:inline">เปิดในแท็บใหม่</span>
+    </a>
+  </header>
+  <div id="viewerBody" class="flex-1 relative overflow-auto scrollbar-thin"></div>
+</div>
+
+<script>
+/* =========================================================
+   CONFIG & GOOGLE APPS SCRIPT WEB APP API URL
+========================================================= */
+// วาง URL ของ Google Apps Script Web App ที่ Deploy แล้วลงในตัวแปรนี้
+const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyjYsC77i30WOGipT6LymMYkQYnbJNOy4qw5lfBhMfClD-inN3hsbjLb0jUVHtTycyqrg/exec"; // เช่น "https://script.google.com/macros/s/AKfycbx.../exec"
+
+/* =========================================================
+   ICONS
+========================================================= */
+const ICONS = {
+  home: '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>',
+  book: '<path stroke-linecap="round" stroke-linejoin="round" d="M4.26 10.147a60.436 60.436 0 00-.491 6.347A48.627 48.627 0 0112 20.904a48.627 48.627 0 018.232-4.41 60.46 60.46 0 00-.491-6.347m-15.482 0a50.57 50.57 0 00-2.658-.813A59.905 59.905 0 0112 3.493a59.902 59.902 0 0110.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.697 50.697 0 0112 13.489a50.702 50.702 0 017.74-3.342M6.75 15a.75.75 0 100-1.5.75.75 0 000 1.5zm0 0v-3.675A55.378 55.378 0 0112 8.443m-7.007 11.55A5.981 5.981 0 006.75 15.75v-1.5"/>',
+  users: '<path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z"/>',
+  building: '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21"/>',
+  wallet: '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z"/>',
+  cap: '<path stroke-linecap="round" stroke-linejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z"/>',
+  key: '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 013 3m3 0a6 6 0 01-7.029 5.912c-.563-.097-1.159.026-1.563.43L10.5 17.25H8.25v2.25H6v2.25H2.25v-2.818c0-.597.237-1.17.659-1.591l6.499-6.499c.404-.404.527-1 .43-1.563A6 6 0 1121.75 8.25z"/>',
+  plus: '<path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>',
+  pencil: '<path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125"/>',
+  trash: '<path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0"/>',
+  link: '<path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 011.242 7.244l-4.5 4.5a4.5 4.5 0 01-6.364-6.364l1.757-1.757m13.35-.622l1.757-1.757a4.5 4.5 0 00-6.364-6.364l-4.5 4.5a4.5 4.5 0 001.242 7.244"/>',
+  lock: '<path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>',
+  unlock: '<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"/>',
+  logout: '<path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>',
+  x: '<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>',
+  chevron: '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>',
+  external: '<path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-10.5 6L21 3m0 0h-5.25M21 3v5.25"/>',
+  photo: '<path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z"/>',
+  doc: '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>',
+  info: '<path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>',
+  grid: '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>',
+  dots: '<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>',
+  check: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+};
+
+function icon(name, cls = 'w-5 h-5') {
+  return `<svg class="${cls}" fill="none" viewBox="0 0 24 24" stroke-width="1.7" stroke="currentColor">${ICONS[name] || ''}</svg>`;
+}
+const SPIN = `<svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-80" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path></svg>`;
+
+/* =========================================================
+   STORAGE & CLOUD SYNC
+========================================================= */
+const LS_KEY = 'bmk_school_data_v1';
+const SS_KEY = 'bmk_admin_session';
+const GROUP_COLORS = ['#0C7C82', '#26A69A', '#0288D1', '#FFCA28', '#FF8A65'];
+const GROUP_SOFT   = ['#E6F4F5', '#E4F5F3', '#E3F3FB', '#FFF7E0', '#FFEFE9'];
+
+function defaultData() {
+  return {
+    logo: '',
+    groups: [
+      { id: 'g1', name: 'กลุ่มบริหารงานวิชาการ', icon: 'book', systems: [] },
+      { id: 'g2', name: 'กลุ่มบริหารงานบุคคล', icon: 'users', systems: [] },
+      { id: 'g3', name: 'กลุ่มบริหารงานทั่วไป', icon: 'building', systems: [] },
+      { id: 'g4', name: 'กลุ่มบริหารงานงบประมาณและสินทรัพย์', icon: 'wallet', systems: [] },
+      { id: 'g5', name: 'กลุ่มบริหารงานกิจการนักเรียน', icon: 'cap', systems: [] }
+    ],
+    credentials: []
+  };
+}
+
+let DB = loadLocal();
+let isAdmin = sessionStorage.getItem(SS_KEY) === '1';
+let currentView = { type: 'home' };
+let openGroups = new Set(['g1']);
+let tempUpload = null;
+let modalHandler = null;
+let canvasRAF = null;
+
+function loadLocal() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return defaultData();
+    const parsed = JSON.parse(raw);
+    const base = defaultData();
+    return {
+      logo: parsed.logo || '',
+      groups: base.groups.map((bg) => {
+        const fg = (parsed.groups || []).find(g => g.id === bg.id);
+        return fg ? { ...bg, systems: Array.isArray(fg.systems) ? fg.systems : [] } : bg;
+      }),
+      credentials: Array.isArray(parsed.credentials) ? parsed.credentials : []
+    };
+  } catch (e) {
+    return defaultData();
+  }
+}
+
+async function syncFromCloud() {
+  if (!GAS_API_URL) return;
+  try {
+    const res = await fetch(GAS_API_URL + "?action=getData");
+    const data = await res.json();
+    if (data && data.groups) {
+      DB = data;
+      localStorage.setItem(LS_KEY, JSON.stringify(DB));
+      renderLogo();
+      renderMenu();
+      if (currentView.type === 'home') renderHome();
+      else if (currentView.type === 'group') renderGroup(currentView.id);
+      else if (currentView.type === 'credentials') renderCredentials();
+    }
+  } catch (err) {
+    console.warn("Cloud sync error, falling back to local storage:", err);
+  }
+}
+
+async function save() {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(DB));
+    
+    if (GAS_API_URL) {
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({ action: 'saveData', data: DB })
+      }).catch(err => console.error("Cloud save failed:", err));
+    }
+    return true;
+  } catch (e) {
+    Swal.fire({
+      icon: 'error',
+      title: 'บันทึกไม่สำเร็จ',
+      text: 'พื้นที่จัดเก็บข้อมูลในเบราว์เซอร์เต็ม',
+      confirmButtonColor: '#0C7C82'
+    });
+    return false;
+  }
+}
+
+async function uploadFileToDrive(fileObj) {
+  if (!GAS_API_URL) return fileObj; // fallback local base64
+  try {
+    const response = await fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        action: 'uploadFile',
+        fileName: fileObj.name,
+        fileType: fileObj.type,
+        base64Data: fileObj.data
+      })
+    });
+    const result = await response.json();
+    if (result.status === 'success') {
+      return {
+        data: result.fileUrl,
+        name: fileObj.name,
+        type: fileObj.type,
+        size: fileObj.size,
+        fileId: result.fileId
+      };
+    }
+  } catch (err) {
+    console.error("Drive upload failed, using local format:", err);
+  }
+  return fileObj;
+}
+
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const normUrl = u => {
+  const s = String(u || '').trim();
+  if (!s) return '';
+  if (/^https?:\/\//i.test(s)) return s;
+  return 'https://' + s;
+};
+const groupColor = id => GROUP_COLORS[Math.max(0, DB.groups.findIndex(g => g.id === id))] || '#0C7C82';
+const groupSoft  = id => GROUP_SOFT[Math.max(0, DB.groups.findIndex(g => g.id === id))] || '#E6F4F5';
+
+/* =========================================================
+   TOAST
+========================================================= */
+function toast(type, title, text = '') {
+  Swal.fire({
+    toast: true,
+    position: 'top-end',
+    icon: type,
+    title,
+    text,
+    showConfirmButton: false,
+    timer: 2200,
+    timerProgressBar: true,
+    didOpen: t => { t.addEventListener('mouseenter', Swal.stopTimer); t.addEventListener('mouseleave', Swal.resumeTimer); }
+  });
+}
+
+/* =========================================================
+   SIDEBAR / NAV
+========================================================= */
+function openSidebar() {
+  document.getElementById('sidebar').classList.remove('-translate-x-full');
+  document.getElementById('overlay').classList.remove('hidden');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.add('-translate-x-full');
+  document.getElementById('overlay').classList.add('hidden');
+}
+
+function renderMenu() {
+  const menu = document.getElementById('menu');
+  let html = '';
+
+  // Home
+  const homeActive = currentView.type === 'home';
+  html += `
+    <button onclick="navigate({type:'home'})"
+      class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition
+             ${homeActive ? 'bg-primary text-white shadow-md shadow-primary/25' : 'text-slate-600 hover:bg-slate-100'}">
+      ${icon('home', 'w-[18px] h-[18px] shrink-0')}
+      <span class="flex-1 text-left">หน้าแรก</span>
+    </button>`;
+
+  // Groups
+  html += `<div class="pt-2 pb-1 px-3"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">กลุ่มงาน</span></div>`;
+
+  DB.groups.forEach(g => {
+    const color = groupColor(g.id);
+    const isOpen = openGroups.has(g.id);
+    const active = currentView.type === 'group' && currentView.id === g.id;
+
+    html += `
+      <div>
+        <button onclick="goGroup('${g.id}')"
+          class="w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm font-medium transition
+                 ${active ? 'bg-slate-100 text-slate-900' : 'text-slate-600 hover:bg-slate-50'}">
+          <span class="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0" style="background:${color}">
+            ${icon(g.icon, 'w-4 h-4')}
+          </span>
+          <span class="flex-1 text-left text-[12.5px] leading-snug line-clamp-2">${esc(g.name)}</span>
+          ${g.systems.length ? `<span class="badge shrink-0" style="background:${color}22;color:${color}">${g.systems.length}</span>` : ''}
+          <span class="shrink-0 text-slate-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}">${icon('chevron', 'w-3.5 h-3.5')}</span>
+        </button>
+
+        <div class="overflow-hidden transition-all duration-300 ${isOpen ? 'max-h-[600px] opacity-100' : 'max-h-0 opacity-0'}">
+          <div class="ml-[26px] pl-3 border-l-2 border-slate-100 py-1 space-y-0.5">
+            ${g.systems.length ? g.systems.map(s => `
+              <button onclick="openSystem('${g.id}','${s.id}')"
+                class="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-[12.5px] text-slate-500 hover:bg-slate-50 hover:text-primary transition text-left">
+                <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background:${color}"></span>
+                <span class="truncate">${esc(s.name)}</span>
+              </button>`).join('')
+              : `<p class="px-2.5 py-2 text-[11.5px] text-slate-300 italic">ยังไม่มีระบบงาน</p>`}
+          </div>
+        </div>
+      </div>`;
+  });
+
+  // Credentials
+  html += `<div class="pt-2 pb-1 px-3"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">คลังข้อมูล</span></div>`;
+  const credActive = currentView.type === 'credentials';
+  html += `
+    <button onclick="navigate({type:'credentials'})"
+      class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition
+             ${credActive ? 'bg-primary text-white shadow-md shadow-primary/25' : 'text-slate-600 hover:bg-slate-100'}">
+      <span class="w-7 h-7 rounded-lg flex items-center justify-center text-white shrink-0 bg-gradient-to-br from-[#4A2C6D] to-[#7E57C2]">
+        ${icon('key', 'w-4 h-4')}
+      </span>
+      <span class="flex-1 text-left text-[12.5px]">Username - Password</span>
+      ${DB.credentials.length ? `<span class="badge shrink-0 bg-purple2/10 text-purple2">${DB.credentials.length}</span>` : ''}
+    </button>`;
+
+  menu.innerHTML = html;
+}
+
+function renderAuth() {
+  const area = document.getElementById('authArea');
+  const mob = document.getElementById('mobileAuth');
+
+  if (isAdmin) {
+    area.innerHTML = `
+      <div class="mb-2 px-3 py-2 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span class="text-[11.5px] font-semibold text-emerald-700">โหมดผู้ดูแลระบบ</span>
+      </div>
+      <button onclick="logout()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-darkred bg-red-50 hover:bg-red-100 transition">
+        ${icon('logout', 'w-[18px] h-[18px]')}<span>ออกจากระบบ</span>
+      </button>`;
+    mob.innerHTML = `<button onclick="logout()" class="w-10 h-10 rounded-xl bg-red-50 text-darkred flex items-center justify-center active:scale-95 transition">${icon('logout', 'w-5 h-5')}</button>`;
+    document.getElementById('logoUploadBtn').classList.remove('hidden');
+  } else {
+    area.innerHTML = `
+      <button onclick="openLogin()" class="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold text-white bg-gradient-to-r from-[#0C7C82] to-[#35B4B0] hover:shadow-lg hover:shadow-primary/30 transition active:scale-[.98]">
+        ${icon('lock', 'w-[18px] h-[18px]')}<span>เข้าสู่ระบบผู้ดูแล</span>
+      </button>
+      <p class="text-[10.5px] text-slate-400 text-center mt-2">สำหรับผู้ดูแลระบบเท่านั้น</p>`;
+    mob.innerHTML = `<button onclick="openLogin()" class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0C7C82] to-[#35B4B0] text-white flex items-center justify-center active:scale-95 transition">${icon('lock', 'w-5 h-5')}</button>`;
+    document.getElementById('logoUploadBtn').classList.add('hidden');
+  }
+
+  renderLogo();
+}
+
+function renderLogo() {
+  const box = document.getElementById('logoBox');
+  if (DB.logo) {
+    box.innerHTML = `<img src="${DB.logo}" alt="โลโก้โรงเรียน" class="w-full h-full object-contain p-0.5" loading="lazy">`;
+  } else {
+    box.innerHTML = `<svg class="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke-width="1.6" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z"/></svg>`;
+  }
+}
+
+/* =========================================================
+   MOBILE BOTTOM NAV
+========================================================= */
+function renderMobileNav() {
+  const wrap = document.getElementById('mobileNavInner');
+  const items = [
+    { key: 'home', label: 'หน้าแรก', icon: 'home', grad: 'from-[#0C7C82] to-[#35B4B0]', act: () => navigate({ type: 'home' }) },
+    { key: 'g1', label: 'วิชาการ', icon: 'book', grad: 'from-[#0C7C82] to-[#26A69A]', act: () => goGroup('g1') },
+    { key: 'g2', label: 'บุคคล', icon: 'users', grad: 'from-[#26A69A] to-[#66BB6A]', act: () => goGroup('g2') },
+    { key: 'g4', label: 'งบประมาณ', icon: 'wallet', grad: 'from-[#FFCA28] to-[#F57C00]', act: () => goGroup('g4') },
+    { key: 'more', label: 'เพิ่มเติม', icon: 'dots', grad: 'from-[#4A2C6D] to-[#7E57C2]', act: () => openSidebar() }
+  ];
+
+  wrap.innerHTML = items.map(it => {
+    const isActive = (it.key === currentView.type) ||
+      (currentView.type === 'group' && currentView.id === it.key);
+    return `
+      <button onclick="(${it.act.toString()})()"
+        class="flex flex-col items-center gap-1 py-1 rounded-2xl transition active:scale-95 ${isActive ? '' : 'opacity-90'}">
+        <span class="w-[38px] h-[38px] rounded-[14px] bg-gradient-to-br ${it.grad} text-white flex items-center justify-center shadow-md
+                     ${isActive ? 'ring-2 ring-offset-1 ring-primary/40 scale-105' : ''} transition-all">
+          ${icon(it.icon, 'w-[19px] h-[19px]')}
+        </span>
+        <span class="text-[9.5px] font-medium ${isActive ? 'text-primary font-semibold' : 'text-slate-500'}">${it.label}</span>
+      </button>`;
+  }).join('');
+}
+
+/* =========================================================
+   NAVIGATION + SKELETON
+========================================================= */
+function navigate(view) {
+  currentView = view;
+  if (view.type === 'group') openGroups.add(view.id);
+  renderMenu();
+  renderMobileNav();
+  closeSidebar();
+  showSkeleton();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  setTimeout(() => {
+    if (view.type === 'home') renderHome();
+    else if (view.type === 'group') renderGroup(view.id);
+    else if (view.type === 'credentials') renderCredentials();
+  }, 330);
+}
+
+function goGroup(gid) {
+  openGroups.add(gid);
+  navigate({ type: 'group', id: gid });
+}
+
+function showSkeleton() {
+  const c = document.getElementById('content');
+  c.innerHTML = `
+    <div class="space-y-5 fade-in">
+      <div class="skeleton h-40 sm:h-52 w-full !rounded-3xl"></div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        ${Array(4).fill('<div class="skeleton h-20 !rounded-2xl"></div>').join('')}
+      </div>
+      <div class="skeleton h-6 w-48 !rounded-lg"></div>
+      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        ${Array(6).fill('<div class="skeleton h-32 !rounded-2xl"></div>').join('')}
+      </div>
+    </div>`;
+}
+
+/* =========================================================
+   HOME
+========================================================= */
+function renderHome() {
+  const totalSystems = DB.groups.reduce((a, g) => a + g.systems.length, 0);
+  const c = document.getElementById('content');
+
+  c.innerHTML = `
+  <div class="space-y-6 fade-in">
+
+    <!-- HERO -->
+    <section class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#0C7C82] via-[#129096] to-[#35B4B0] text-white p-5 sm:p-9 shadow-xl shadow-primary/20">
+      <div class="absolute inset-0">
+        <canvas id="heroCanvas" class="w-full h-full"></canvas>
+      </div>
+      <div class="absolute -right-16 -top-16 w-64 h-64 rounded-full bg-white/10 blur-2xl"></div>
+      <div class="absolute -left-20 -bottom-24 w-72 h-72 rounded-full bg-amber2/20 blur-3xl"></div>
+
+      <div class="relative flex flex-col sm:flex-row items-center gap-5 sm:gap-7">
+        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-[28px] bg-white/15 backdrop-blur-md border border-white/25 flex items-center justify-center overflow-hidden shrink-0 shadow-2xl">
+          ${DB.logo
+            ? `<img src="${DB.logo}" class="w-full h-full object-contain p-1.5" loading="lazy" alt="โลโก้">`
+            : `<span class="text-5xl">🏫</span>`}
+        </div>
+
+        <div class="text-center sm:text-left flex-1 min-w-0">
+          <span class="inline-block px-3 py-1 rounded-full bg-white/20 backdrop-blur text-[11px] font-medium mb-2 border border-white/20">
+            ศูนย์รวมระบบงานออนไลน์
+          </span>
+          <h1 class="text-[22px] sm:text-3xl font-bold leading-tight">ระบบงานโรงเรียนบ้านหมอ "พัฒนานุกูล"</h1>
+          <p class="text-white/85 mt-2 text-[13px] sm:text-[15px] leading-relaxed">
+            รวมระบบงานและลิงก์บริการของทั้ง 5 กลุ่มงานไว้ในที่เดียว สะดวก ใช้งานง่าย
+          </p>
+
+          <div class="flex flex-wrap gap-2 mt-4 justify-center sm:justify-start">
+            <button onclick="openHelp()"
+              class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-primary font-semibold text-[13px] shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition active:scale-95">
+              ${icon('info', 'w-4 h-4')} วิธีการใช้งานระบบ
+            </button>
+            ${isAdmin
+              ? `<button onclick="logout()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 backdrop-blur border border-white/25 font-semibold text-[13px] hover:bg-white/25 transition active:scale-95">
+                   ${icon('logout', 'w-4 h-4')} ออกจากระบบ
+                 </button>`
+              : `<button onclick="openLogin()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/15 backdrop-blur border border-white/25 font-semibold text-[13px] hover:bg-white/25 transition active:scale-95">
+                   ${icon('lock', 'w-4 h-4')} เข้าสู่ระบบ
+                 </button>`}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      ${statCard('กลุ่มงาน', DB.groups.length, 'grid', 'from-[#0C7C82] to-[#35B4B0]')}
+      ${statCard('ระบบงาน', totalSystems, 'link', 'from-[#26A69A] to-[#66BB6A]')}
+      ${statCard('รหัสผ่าน', DB.credentials.length, 'key', 'from-[#4A2C6D] to-[#7E57C2]')}
+      ${statCard('อัปเดตล่าสุด', 'วันนี้', 'check', 'from-[#FFCA28] to-[#F57C00]')}
+    </section>
+
+    <!-- GROUPS -->
+    <section>
+      <div class="flex items-center gap-2 mb-3">
+        <span class="w-1.5 h-6 rounded-full bg-gradient-to-b from-[#0C7C82] to-[#35B4B0]"></span>
+        <h2 class="text-lg font-bold text-slate-800">กลุ่มงานทั้งหมด</h2>
+      </div>
+
+      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        ${DB.groups.map((g, i) => {
+          const color = GROUP_COLORS[i], soft = GROUP_SOFT[i];
+          return `
+          <button onclick="goGroup('${g.id}')"
+            class="group relative overflow-hidden text-left bg-white rounded-2xl border border-slate-100 p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 active:scale-[.98]">
+            <div class="absolute -right-8 -top-8 w-28 h-28 rounded-full opacity-60 transition-transform duration-500 group-hover:scale-125" style="background:${soft}"></div>
+            <div class="relative flex items-start gap-3.5">
+              <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-md" style="background:${color}">
+                ${icon(g.icon, 'w-6 h-6')}
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-bold text-slate-800 text-[14px] leading-snug">${esc(g.name)}</h3>
+                <p class="text-[11.5px] text-slate-400 mt-1">${g.systems.length} ระบบงาน</p>
+              </div>
+            </div>
+            <div class="relative mt-4 flex items-center justify-between">
+              <span class="badge" style="background:${soft};color:${color}">${g.systems.length ? 'พร้อมใช้งาน' : 'ยังไม่มีข้อมูล'}</span>
+              <span class="text-slate-300 group-hover:text-primary group-hover:translate-x-1 transition-all">
+                ${icon('chevron', 'w-4 h-4 -rotate-90')}
+              </span>
+            </div>
+          </button>`;
+        }).join('')}
+      </div>
+    </section>
+  </div>`;
+
+  initCanvas();
+}
+
+function statCard(label, value, ic, grad) {
+  return `
+    <div class="bg-white rounded-2xl border border-slate-100 p-3.5 sm:p-4 shadow-sm flex items-center gap-3">
+      <span class="w-10 h-10 rounded-xl bg-gradient-to-br ${grad} text-white flex items-center justify-center shrink-0 shadow-sm">
+        ${icon(ic, 'w-5 h-5')}
+      </span>
+      <div class="min-w-0">
+        <p class="text-[11px] text-slate-400 font-medium truncate">${label}</p>
+        <p class="text-lg font-bold text-slate-800 leading-tight truncate">${value}</p>
+      </div>
+    </div>`;
+}
+
+/* Canvas decoration */
+let canvasResizeHandler = null;
+function initCanvas() {
+  const cv = document.getElementById('heroCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  let w = 0, h = 0, dots = [];
+
+  function resize() {
+    const rect = cv.parentElement.getBoundingClientRect();
+    w = cv.width = Math.max(1, rect.width);
+    h = cv.height = Math.max(1, rect.height);
+    dots = Array.from({ length: 36 }, () => ({
+      x: Math.random() * w, y: Math.random() * h,
+      r: Math.random() * 2.4 + 0.8,
+      vx: (Math.random() - 0.5) * 0.35,
+      vy: (Math.random() - 0.5) * 0.35
+    }));
+  }
+
+  if (canvasResizeHandler) window.removeEventListener('resize', canvasResizeHandler);
+  canvasResizeHandler = resize;
+  window.addEventListener('resize', canvasResizeHandler);
+  resize();
+
+  if (canvasRAF) cancelAnimationFrame(canvasRAF);
+
+  function loop() {
+    ctx.clearRect(0, 0, w, h);
+    for (let i = 0; i < dots.length; i++) {
+      const p = dots[i];
+      p.x += p.vx; p.y += p.vy;
+      if (p.x < 0 || p.x > w) p.vx *= -1;
+      if (p.y < 0 || p.y > h) p.vy *= -1;
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(255,255,255,0.45)';
+      ctx.fill();
+
+      for (let j = i + 1; j < dots.length; j++) {
+        const q = dots[j];
+        const dx = p.x - q.x, dy = p.y - q.y;
+        const d = Math.sqrt(dx * dx + dy * dy);
+        if (d < 110) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(q.x, q.y);
+          ctx.strokeStyle = `rgba(255,255,255,${0.13 * (1 - d / 110)})`;
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+    canvasRAF = requestAnimationFrame(loop);
+  }
+  loop();
+}
+
+/* =========================================================
+   GROUP PAGE
+========================================================= */
+function renderGroup(gid) {
+  const g = DB.groups.find(x => x.id === gid);
+  if (!g) return navigate({ type: 'home' });
+
+  const color = groupColor(gid);
+  const soft = groupSoft(gid);
+  const c = document.getElementById('content');
+
+  c.innerHTML = `
+  <div class="space-y-5 fade-in">
+
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg" style="background:${color}">
+          ${icon(g.icon, 'w-6 h-6')}
+        </div>
+        <div class="min-w-0">
+          <h2 class="text-lg sm:text-xl font-bold text-slate-800 leading-tight">${esc(g.name)}</h2>
+          <p class="text-[12.5px] text-slate-500 mt-0.5">ระบบงานทั้งหมด ${g.systems.length} รายการ</p>
+        </div>
+      </div>
+
+      ${isAdmin ? `
+        <button onclick="openSystemForm('${gid}')"
+          class="shrink-0 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#0C7C82] to-[#35B4B0] text-white text-[13px] font-semibold shadow-lg shadow-primary/25 hover:-translate-y-0.5 active:scale-95 transition">
+          ${icon('plus', 'w-4 h-4')} เพิ่มระบบงาน
+        </button>` : ''}
+    </div>
+
+    ${g.systems.length ? `
+      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        ${g.systems.map(s => systemCard(s, g, color, soft)).join('')}
+      </div>
+    ` : `
+      <div class="bg-white rounded-3xl border border-dashed border-slate-200 py-14 px-6 text-center">
+        <div class="w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-3" style="background:${soft};color:${color}">
+          ${icon('link', 'w-7 h-7')}
+        </div>
+        <p class="font-semibold text-slate-700">ยังไม่มีระบบงานในกลุ่มนี้</p>
+        <p class="text-[12.5px] text-slate-400 mt-1">${isAdmin ? 'กดปุ่ม "เพิ่มระบบงาน" เพื่อเริ่มต้นเพิ่มข้อมูล' : 'กรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่มข้อมูล'}</p>
+      </div>
+    `}
+  </div>`;
+}
+
+function systemCard(s, g, color, soft) {
+  return `
+  <div class="group relative bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden"
+       onclick="openSystem('${g.id}','${s.id}')">
+
+    <div class="absolute inset-x-0 top-0 h-1" style="background:linear-gradient(90deg,${color},${color}55)"></div>
+
+    <div class="flex items-start gap-3">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm" style="background:${color}">
+        ${icon('link', 'w-5 h-5')}
+      </div>
+      <div class="flex-1 min-w-0 pt-0.5">
+        <h3 class="font-bold text-slate-800 text-[14px] leading-snug line-clamp-2">${esc(s.name)}</h3>
+        <p class="text-[11.5px] text-slate-400 mt-1 truncate flex items-center gap-1">
+          ${icon('external', 'w-3 h-3 shrink-0')}
+          <span class="truncate">${esc(s.url || 'ไม่มีลิงก์เชื่อมต่อ')}</span>
+        </p>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-50">
+      <span class="badge" style="background:${soft};color:${color}">
+        ${icon('check', 'w-3 h-3')} เปิดใช้งาน
+      </span>
+
+      ${isAdmin ? `
+        <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+          <button onclick="openSystemForm('${g.id}','${s.id}')" title="แก้ไข"
+            class="w-8 h-8 rounded-lg bg-amber-50 text-orange3 hover:bg-amber-100 flex items-center justify-center transition active:scale-90">
+            ${icon('pencil', 'w-4 h-4')}
+          </button>
+          <button onclick="deleteSystem('${g.id}','${s.id}')" title="ลบ"
+            class="w-8 h-8 rounded-lg bg-red-50 text-darkred hover:bg-red-100 flex items-center justify-center transition active:scale-90">
+            ${icon('trash', 'w-4 h-4')}
+          </button>
+        </div>` : `
+        <span class="text-[11px] text-slate-300 group-hover:text-primary transition flex items-center gap-1">
+          เปิด ${icon('chevron', 'w-3 h-3 -rotate-90')}
+        </span>`}
+    </div>
+  </div>`;
+}
+
+/* =========================================================
+   CREDENTIALS PAGE
+========================================================= */
+function renderCredentials() {
+  const c = document.getElementById('content');
+
+  c.innerHTML = `
+  <div class="space-y-5 fade-in">
+
+    <div class="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+      <div class="flex items-center gap-3 min-w-0">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-white shrink-0 shadow-lg bg-gradient-to-br from-[#4A2C6D] to-[#7E57C2]">
+          ${icon('key', 'w-6 h-6')}
+        </div>
+        <div class="min-w-0">
+          <h2 class="text-lg sm:text-xl font-bold text-slate-800 leading-tight">Username - Password</h2>
+          <p class="text-[12.5px] text-slate-500 mt-0.5">รวมปุ่มเข้าสู่ระบบและเอกสารแนบ ${DB.credentials.length} รายการ</p>
+        </div>
+      </div>
+
+      ${isAdmin ? `
+        <button onclick="openCredentialForm()"
+          class="shrink-0 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#4A2C6D] to-[#7E57C2] text-white text-[13px] font-semibold shadow-lg shadow-purple2/25 hover:-translate-y-0.5 active:scale-95 transition">
+          ${icon('plus', 'w-4 h-4')} เพิ่มปุ่ม
+        </button>` : ''}
+    </div>
+
+    ${DB.credentials.length ? `
+      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        ${DB.credentials.map(cr => credentialCard(cr)).join('')}
+      </div>
+    ` : `
+      <div class="bg-white rounded-3xl border border-dashed border-slate-200 py-14 px-6 text-center">
+        <div class="w-16 h-16 mx-auto rounded-2xl bg-purple2/10 text-purple2 flex items-center justify-center mb-3">
+          ${icon('key', 'w-7 h-7')}
+        </div>
+        <p class="font-semibold text-slate-700">ยังไม่มีข้อมูล Username - Password</p>
+        <p class="text-[12.5px] text-slate-400 mt-1">${isAdmin ? 'กดปุ่ม "เพิ่มปุ่ม" เพื่อเริ่มต้นเพิ่มข้อมูล' : 'กรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่มข้อมูล'}</p>
+      </div>
+    `}
+  </div>`;
+}
+
+function credentialCard(cr) {
+  const hasFile = !!cr.file;
+  const isImg = hasFile && cr.file.type && cr.file.type.startsWith('image');
+  const fileLabel = hasFile ? (isImg ? 'รูปภาพ' : 'PDF') : '';
+
+  return `
+  <div class="group relative bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden"
+       onclick="openCredential('${cr.id}')">
+    <div class="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#4A2C6D] to-[#7E57C2]"></div>
+
+    <div class="flex items-start gap-3">
+      <div class="w-11 h-11 rounded-xl bg-gradient-to-br from-[#4A2C6D] to-[#7E57C2] text-white flex items-center justify-center shrink-0 shadow-sm">
+        ${icon('key', 'w-5 h-5')}
+      </div>
+      <div class="flex-1 min-w-0 pt-0.5">
+        <h3 class="font-bold text-slate-800 text-[14px] leading-snug line-clamp-2">${esc(cr.name)}</h3>
+        <div class="flex flex-wrap gap-1.5 mt-1.5">
+          ${cr.url ? `<span class="badge bg-blue2/10 text-blue2">${icon('link', 'w-3 h-3')} URL</span>` : ''}
+          ${hasFile ? `<span class="badge bg-lime2/20 text-[#5a8a2c]">${icon('doc', 'w-3 h-3')} ${fileLabel}</span>` : ''}
+          ${!cr.url && !hasFile ? `<span class="badge bg-slate-100 text-slate-400">ไม่มีข้อมูลเพิ่มเติม</span>` : ''}
+        </div>
+      </div>
+    </div>
+
+    <div class="flex items-center justify-between mt-4 pt-3 border-t border-slate-50">
+      <span class="text-[11px] text-slate-400 group-hover:text-purple2 transition flex items-center gap-1">
+        คลิกเพื่อดูรายละเอียด ${icon('chevron', 'w-3 h-3 -rotate-90')}
+      </span>
+
+      ${isAdmin ? `
+        <div class="flex items-center gap-1" onclick="event.stopPropagation()">
+          <button onclick="openCredentialForm('${cr.id}')" title="แก้ไข"
+            class="w-8 h-8 rounded-lg bg-amber-50 text-orange3 hover:bg-amber-100 flex items-center justify-center transition active:scale-90">
+            ${icon('pencil', 'w-4 h-4')}
+          </button>
+          <button onclick="deleteCredential('${cr.id}')" title="ลบ"
+            class="w-8 h-8 rounded-lg bg-red-50 text-darkred hover:bg-red-100 flex items-center justify-center transition active:scale-90">
+            ${icon('trash', 'w-4 h-4')}
+          </button>
+        </div>` : ''}
+    </div>
+  </div>`;
+}
+
+/* =========================================================
+   MODAL ENGINE
+========================================================= */
+function openModal(opts) {
+  document.getElementById('modalTitle').textContent = opts.title || '';
+  document.getElementById('modalBody').innerHTML = opts.body || '';
+  const footer = document.getElementById('modalFooter');
+
+  footer.innerHTML = `
+    <button onclick="closeModal()" class="px-4 py-2.5 rounded-xl text-[13px] font-semibold text-slate-600 bg-white border border-slate-200 hover:bg-slate-100 transition">
+      ยกเลิก
+    </button>
+    <button id="modalSubmit"
+      class="px-5 py-2.5 rounded-xl text-[13px] font-semibold text-white bg-gradient-to-r from-[#0C7C82] to-[#35B4B0] shadow-lg shadow-primary/25 hover:-translate-y-0.5 active:scale-95 transition flex items-center gap-2">
+      ${opts.submitText || 'บันทึก'}
+    </button>`;
+
+  modalHandler = opts.onSubmit;
+
+  const btn = document.getElementById('modalSubmit');
+  btn.onclick = async () => {
+    if (!modalHandler) return closeModal();
+    const original = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = `${SPIN}<span>กำลังบันทึก...</span>`;
+    try {
+      const res = await modalHandler();
+      if (res !== false) closeModal();
+    } catch (e) {
+      console.error(e);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = original;
+    }
+  };
+
+  document.getElementById('modal').classList.remove('hidden');
+  document.body.classList.add('no-scroll');
+
+  setTimeout(() => {
+    const first = document.querySelector('#modalBody input, #modalBody select, #modalBody textarea');
+    if (first) first.focus();
+  }, 120);
+
+  // Enter key submit
+  const body = document.getElementById('modalBody');
+  body.onkeydown = e => {
+    if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
+      e.preventDefault();
+      btn.click();
+    }
+  };
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.add('hidden');
+  document.body.classList.remove('no-scroll');
+  modalHandler = null;
+  tempUpload = null;
+}
+
+/* =========================================================
+   LOGIN / LOGOUT
+========================================================= */
+function openLogin() {
+  openModal({
+    title: 'เข้าสู่ระบบผู้ดูแล',
+    submitText: 'เข้าสู่ระบบ',
+    body: `
+      <div class="space-y-4">
+        <div class="flex items-center gap-3 p-3 rounded-2xl bg-primary/5 border border-primary/10">
+          <span class="w-10 h-10 rounded-xl bg-gradient-to-br from-[#0C7C82] to-[#35B4B0] text-white flex items-center justify-center shrink-0">
+            ${icon('lock', 'w-5 h-5')}
+          </span>
+          <p class="text-[12.5px] text-slate-600 leading-relaxed">กรุณากรอกชื่อผู้ใช้และรหัสผ่านเพื่อจัดการข้อมูลระบบ</p>
+        </div>
+
+        <div>
+          <label class="lbl">ชื่อผู้ใช้ (Username)</label>
+          <input id="f_user" class="inp" placeholder="กรอกชื่อผู้ใช้" autocomplete="off">
+        </div>
+
+        <div>
+          <label class="lbl">รหัสผ่าน (Password)</label>
+          <div class="relative">
+            <input id="f_pass" type="password" class="inp pr-11" placeholder="กรอกรหัสผ่าน">
+            <button type="button" onclick="togglePass()" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg hover:bg-slate-100 flex items-center justify-center text-slate-400 transition">
+              <span id="eyeIcon">${icon('unlock', 'w-4 h-4')}</span>
+            </button>
+          </div>
+        </div>
+      </div>`,
+    onSubmit: async () => {
+      const u = document.getElementById('f_user').value.trim();
+      const p = document.getElementById('f_pass').value;
+
+      if (!u || !p) {
+        toast('warning', 'กรุณากรอกข้อมูลให้ครบถ้วน');
+        return false;
+      }
+
+      if (u === 'admin' && p === 'admin752') {
+        isAdmin = true;
+        sessionStorage.setItem(SS_KEY, '1');
+        renderAuth();
+        renderMenu();
+        renderMobileNav();
+        navigate(currentView);
+        Swal.fire({
+          icon: 'success',
+          title: 'เข้าสู่ระบบสำเร็จ',
+          text: 'คุณสามารถจัดการข้อมูลได้แล้ว',
+          timer: 1600,
+          showConfirmButton: false
+        });
+        return true;
+      }
+
+      Swal.fire({
+        icon: 'error',
+        title: 'เข้าสู่ระบบไม่สำเร็จ',
+        text: 'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง',
+        confirmButtonColor: '#0C7C82',
+        confirmButtonText: 'ลองใหม่'
+      });
+      return false;
+    }
+  });
+}
+
+function togglePass() {
+  const inp = document.getElementById('f_pass');
+  const ic = document.getElementById('eyeIcon');
+  if (!inp) return;
+  if (inp.type === 'password') {
+    inp.type = 'text';
+    ic.innerHTML = icon('lock', 'w-4 h-4');
+  } else {
+    inp.type = 'password';
+    ic.innerHTML = icon('unlock', 'w-4 h-4');
+  }
+}
+
+function logout() {
+  Swal.fire({
+    title: 'ออกจากระบบ?',
+    text: 'คุณต้องการออกจากระบบผู้ดูแลใช่หรือไม่',
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonText: 'ออกจากระบบ',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#D32F2F',
+    cancelButtonColor: '#94a3b8',
+    reverseButtons: true
+  }).then(r => {
+    if (r.isConfirmed) {
+      isAdmin = false;
+      sessionStorage.removeItem(SS_KEY);
+      renderAuth();
+      renderMenu();
+      renderMobileNav();
+      navigate({ type: 'home' });
+      Swal.fire({
+        icon: 'success',
+        title: 'ออกจากระบบแล้ว',
+        timer: 1400,
+        showConfirmButton: false
+      });
+    }
+  });
+}
+
+/* =========================================================
+   HELP
+========================================================= */
+function openHelp() {
+  Swal.fire({
+    title: 'วิธีการใช้งานระบบ',
+    width: 640,
+    html: `
+      <div style="text-align:left; font-family:'Sarabun',sans-serif;">
+        <div style="background:#E6F4F5;border-radius:16px;padding:14px 16px;margin-bottom:14px;">
+          <p style="margin:0;font-weight:700;color:#0C7C82;font-size:15px;">ยินดีต้อนรับสู่ระบบงานโรงเรียนบ้านหมอ "พัฒนานุกูล"</p>
+          <p style="margin:6px 0 0;font-size:13px;color:#475569;line-height:1.7;">
+            ระบบนี้เป็นศูนย์รวมลิงก์และระบบงานออนไลน์ของโรงเรียน แบ่งออกเป็น 5 กลุ่มงาน
+          </p>
+        </div>
+
+        <p style="font-weight:700;color:#0C7C82;font-size:14px;margin:0 0 8px;">ขั้นตอนการใช้งาน</p>
+        <ol style="margin:0 0 14px;padding-left:20px;font-size:13px;color:#475569;line-height:2;">
+          <li>เลือก <b>กลุ่มงาน</b> ที่ต้องการจากเมนูด้านซ้ายมือ (หรือแถบเมนูด้านล่างบนมือถือ)</li>
+          <li>กดที่ <b>การ์ดระบบงาน</b> ที่ต้องการ ระบบจะเปิดหน้าเว็บไซต์นั้นแบบเต็มหน้าจอ</li>
+          <li>กดปุ่ม <b>✕</b> มุมซ้ายบน เพื่อกลับสู่หน้าหลักของระบบ</li>
+          <li>เข้าดู <b>Username - Password</b> เพื่อดูข้อมูลบัญชีผู้ใช้และเอกสารแนบของแต่ละระบบ</li>
+        </ol>
+
+        <div style="background:#FFF7E0;border-left:4px solid #FFCA28;border-radius:10px;padding:10px 14px;">
+          <p style="margin:0;font-size:12.5px;color:#8a6d00;line-height:1.7;">
+            💡 <b>เคล็ดลับ:</b> หากระบบงานไม่แสดงผลในหน้าต่างเต็มจอ ให้กดปุ่ม <b>"เปิดในแท็บใหม่"</b> ที่มุมขวาบน
+          </p>
+        </div>
+      </div>`,
+    confirmButtonText: 'เข้าใจแล้ว',
+    confirmButtonColor: '#0C7C82'
+  });
+}
+
+/* =========================================================
+   SYSTEM (SYSTEM WORK) CRUD
+========================================================= */
+function openSystemForm(gid, sid) {
+  const g = DB.groups.find(x => x.id === gid);
+  if (!g) return;
+  const s = sid ? g.systems.find(x => x.id === sid) : null;
+
+  openModal({
+    title: s ? 'แก้ไขระบบงาน' : 'เพิ่มระบบงาน',
+    submitText: s ? 'บันทึกการแก้ไข' : 'เพิ่มระบบงาน',
+    body: `
+      <div class="space-y-4">
+        <div class="flex items-center gap-2.5 p-3 rounded-2xl" style="background:${groupSoft(gid)}">
+          <span class="w-9 h-9 rounded-xl flex items-center justify-center text-white shrink-0" style="background:${groupColor(gid)}">
+            ${icon(g.icon, 'w-4 h-4')}
+          </span>
+          <p class="text-[12.5px] font-semibold text-slate-600 leading-snug">${esc(g.name)}</p>
+        </div>
+
+        <div>
+          <label class="lbl">ชื่อระบบงาน <span class="text-red2">*</span></label>
+          <input id="f_name" class="inp" value="${esc(s?.name || '')}" placeholder="เช่น ระบบทะเบียนนักเรียนออนไลน์">
+        </div>
+
+        <div>
+          <label class="lbl">URL ระบบงาน</label>
+          <input id="f_url" class="inp" value="${esc(s?.url || '')}" placeholder="https://example.com">
+          <p class="text-[11px] text-slate-400 mt-1.5">หากไม่ระบุ http:// ระบบจะเติม https:// ให้อัตโนมัติ</p>
+        </div>
+      </div>`,
+    onSubmit: async () => {
+      const name = document.getElementById('f_name').value.trim();
+      const url = document.getElementById('f_url').value.trim();
+
+      if (!name) {
+        Swal.fire({ icon: 'warning', title: 'กรุณากรอกชื่อระบบงาน', confirmButtonColor: '#0C7C82' });
+        return false;
+      }
+
+      if (s) {
+        s.name = name;
+        s.url = url;
+      } else {
+        g.systems.push({ id: uid(), name, url });
+      }
+
+      if (!(await save())) return false;
+      renderMenu();
+      toast('success', s ? 'แก้ไขข้อมูลเรียบร้อย' : 'เพิ่มระบบงานเรียบร้อย');
+      navigate({ type: 'group', id: gid });
+      return true;
+    }
+  });
+}
+
+function deleteSystem(gid, sid) {
+  const g = DB.groups.find(x => x.id === gid);
+  const s = g?.systems.find(x => x.id === sid);
+  if (!s) return;
+
+  Swal.fire({
+    title: 'ยืนยันการลบ?',
+    html: `คุณต้องการลบระบบงาน <b style="color:#D32F2F;">"${esc(s.name)}"</b> ใช่หรือไม่<br><span style="font-size:12.5px;color:#94a3b8;">ข้อมูลที่ลบแล้วไม่สามารถกู้คืนได้</span>`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'ลบข้อมูล',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#D32F2F',
+    cancelButtonColor: '#94a3b8',
+    reverseButtons: true
+  }).then(async r => {
+    if (!r.isConfirmed) return;
+    g.systems = g.systems.filter(x => x.id !== sid);
+    await save();
+    renderMenu();
+    navigate({ type: 'group', id: gid });
+    toast('success', 'ลบระบบงานเรียบร้อย');
+  });
+}
+
+/* =========================================================
+   CREDENTIAL CRUD
+========================================================= */
+function openCredentialForm(id) {
+  const cr = id ? DB.credentials.find(x => x.id === id) : null;
+  tempUpload = cr?.file || null;
+
+  openModal({
+    title: cr ? 'แก้ไขข้อมูล Username - Password' : 'เพิ่มข้อมูล Username - Password',
+    submitText: cr ? 'บันทึกการแก้ไข' : 'เพิ่มข้อมูล',
+    body: `
+      <div class="space-y-4">
+        <div>
+          <label class="lbl">ชื่อปุ่ม <span class="text-red2">*</span></label>
+          <input id="c_name" class="inp" value="${esc(cr?.name || '')}" placeholder="เช่น ระบบจัดซื้อจัดจ้าง (GFMIS)">
+        </div>
+
+        <div>
+          <label class="lbl">URL (ไม่บังคับ)</label>
+          <input id="c_url" class="inp" value="${esc(cr?.url || '')}" placeholder="https://example.com">
+        </div>
+
+        <div>
+          <label class="lbl">ไฟล์แนบ (ไม่บังคับ)</label>
+          <div id="dropZone"
+            class="relative border-2 border-dashed border-slate-200 rounded-2xl p-5 text-center hover:border-primary2 hover:bg-primary/5 transition cursor-pointer"
+            onclick="document.getElementById('c_file').click()">
+            <input type="file" id="c_file" accept=".pdf,image/png,image/jpeg,image/jpg" class="hidden" onchange="handleCredFile(event)">
+            <div id="filePreview">
+              ${cr?.file ? renderFilePreview(cr.file) : `
+                <div class="flex flex-col items-center gap-1.5 text-slate-400 pointer-events-none">
+                  <div class="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center">
+                    ${icon('doc', 'w-5 h-5')}
+                  </div>
+                  <p class="text-[12.5px] font-medium text-slate-500">คลิกเพื่อเลือกไฟล์</p>
+                  <p class="text-[11px]">รองรับ PDF, JPG, PNG (ส่งตรงไปยัง Google Drive)</p>
+                </div>`}
+            </div>
+          </div>
+          <button type="button" id="removeFileBtn" onclick="clearTempFile()"
+            class="${cr?.file ? '' : 'hidden'} mt-2 text-[12px] font-semibold text-darkred hover:underline">
+            ลบไฟล์แนบออก
+          </button>
+        </div>
+      </div>`,
+    onSubmit: async () => {
+      const name = document.getElementById('c_name').value.trim();
+      const url = document.getElementById('c_url').value.trim();
+
+      if (!name) {
+        Swal.fire({ icon: 'warning', title: 'กรุณากรอกชื่อปุ่ม', confirmButtonColor: '#0C7C82' });
+        return false;
+      }
+
+      let uploadedFileObj = tempUpload;
+      if (tempUpload && tempUpload.data && tempUpload.data.startsWith('data:')) {
+        // Upload to Google Drive if connected
+        uploadedFileObj = await uploadFileToDrive(tempUpload);
+      }
+
+      if (cr) {
+        cr.name = name;
+        cr.url = url;
+        cr.file = uploadedFileObj;
+      } else {
+        DB.credentials.push({ id: uid(), name, url, file: uploadedFileObj });
+      }
+
+      if (!(await save())) return false;
+      toast('success', cr ? 'แก้ไขข้อมูลเรียบร้อย' : 'เพิ่มข้อมูลเรียบร้อย');
+      navigate({ type: 'credentials' });
+      return true;
+    }
+  });
+}
+
+function renderFilePreview(file) {
+  const isImg = file.type && file.type.startsWith('image');
+  const isDriveUrl = file.data && file.data.includes('drive.google.com');
+  return `
+    <div class="flex items-center gap-3 text-left">
+      <div class="w-14 h-14 rounded-xl overflow-hidden bg-slate-100 flex items-center justify-center shrink-0 border border-slate-200">
+        ${isImg
+          ? `<img src="${file.data}" class="w-full h-full object-cover" loading="lazy">`
+          : `<span class="text-darkred">${icon('doc', 'w-6 h-6')}</span>`}
+      </div>
+      <div class="min-w-0 flex-1">
+        <p class="text-[12.5px] font-semibold text-slate-700 truncate">${esc(file.name || 'ไฟล์แนบ')}</p>
+        <p class="text-[11px] text-slate-400 mt-0.5">${isImg ? 'รูปภาพ' : 'เอกสาร PDF'} ${file.size ? '• ' + (file.size / 1024).toFixed(0) + ' KB' : ''}</p>
+        <span class="badge bg-lime2/20 text-[#5a8a2c] mt-1">${icon('check', 'w-3 h-3')} ${isDriveUrl ? 'จัดเก็บใน Google Drive' : 'แนบแล้ว'}</span>
+      </div>
+    </div>`;
+}
+
+function handleCredFile(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+
+  const ok = ['application/pdf', 'image/png', 'image/jpeg', 'image/jpg'];
+  if (!ok.includes(f.type)) {
+    Swal.fire({ icon: 'error', title: 'ไฟล์ไม่ถูกต้อง', text: 'รองรับเฉพาะ PDF, JPG, PNG', confirmButtonColor: '#0C7C82' });
+    e.target.value = '';
+    return;
+  }
+  if (f.size > 15 * 1024 * 1024) {
+    Swal.fire({ icon: 'error', title: 'ไฟล์ใหญ่เกินไป', text: 'กรุณาเลือกไฟล์ขนาดไม่เกิน 15 MB', confirmButtonColor: '#0C7C82' });
+    e.target.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  const prev = document.getElementById('filePreview');
+  prev.innerHTML = `<div class="flex items-center justify-center gap-2 text-primary py-2">${SPIN}<span class="text-[12.5px]">กำลังเตรียมไฟล์...</span></div>`;
+
+  reader.onload = ev => {
+    tempUpload = { data: ev.target.result, name: f.name, type: f.type, size: f.size };
+    document.getElementById('filePreview').innerHTML = renderFilePreview(tempUpload);
+    document.getElementById('removeFileBtn').classList.remove('hidden');
+    toast('success', 'แนบไฟล์เรียบร้อย');
+  };
+  reader.readAsDataURL(f);
+}
+
+function clearTempFile() {
+  tempUpload = null;
+  const input = document.getElementById('c_file');
+  if (input) input.value = '';
+  document.getElementById('filePreview').innerHTML = `
+    <div class="flex flex-col items-center gap-1.5 text-slate-400 pointer-events-none">
+      <div class="w-11 h-11 rounded-xl bg-slate-100 flex items-center justify-center">
+        ${icon('doc', 'w-5 h-5')}
+      </div>
+      <p class="text-[12.5px] font-medium text-slate-500">คลิกเพื่อเลือกไฟล์</p>
+      <p class="text-[11px]">รองรับ PDF, JPG, PNG (ส่งตรงไปยัง Google Drive)</p>
+    </div>`;
+  document.getElementById('removeFileBtn').classList.add('hidden');
+}
+
+function deleteCredential(id) {
+  const cr = DB.credentials.find(x => x.id === id);
+  if (!cr) return;
+
+  Swal.fire({
+    title: 'ยืนยันการลบ?',
+    html: `คุณต้องการลบข้อมูล <b style="color:#D32F2F;">"${esc(cr.name)}"</b> ใช่หรือไม่<br><span style="font-size:12.5px;color:#94a3b8;">ข้อมูลและไฟล์แนบจะถูกลบถาวร</span>`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonText: 'ลบข้อมูล',
+    cancelButtonText: 'ยกเลิก',
+    confirmButtonColor: '#D32F2F',
+    cancelButtonColor: '#94a3b8',
+    reverseButtons: true
+  }).then(async r => {
+    if (!r.isConfirmed) return;
+    DB.credentials = DB.credentials.filter(x => x.id !== id);
+    await save();
+    renderMenu();
+    navigate({ type: 'credentials' });
+    toast('success', 'ลบข้อมูลเรียบร้อย');
+  });
+}
+
+/* =========================================================
+   LOGO UPLOAD
+========================================================= */
+async function handleLogoUpload(e) {
+  const f = e.target.files[0];
+  if (!f) return;
+
+  if (!['image/png', 'image/jpeg', 'image/jpg'].includes(f.type)) {
+    Swal.fire({ icon: 'error', title: 'ไฟล์ไม่ถูกต้อง', text: 'รองรับเฉพาะ PNG และ JPG', confirmButtonColor: '#0C7C82' });
+    e.target.value = '';
+    return;
+  }
+  if (f.size > 5 * 1024 * 1024) {
+    Swal.fire({ icon: 'error', title: 'ไฟล์ใหญ่เกินไป', text: 'กรุณาใช้รูปโลโก้ขนาดไม่เกิน 5 MB', confirmButtonColor: '#0C7C82' });
+    e.target.value = '';
+    return;
+  }
+
+  Swal.fire({
+    title: 'กำลังอัปโหลดโลโก้...',
+    html: `<div style="display:flex;justify-content:center;padding:8px 0;">${SPIN}</div>`,
+    showConfirmButton: false,
+    allowOutsideClick: false
+  });
+
+  const reader = new FileReader();
+  reader.onload = async ev => {
+    let logoObj = { data: ev.target.result, name: f.name, type: f.type, size: f.size };
+    if (GAS_API_URL) {
+      const driveFile = await uploadFileToDrive(logoObj);
+      DB.logo = driveFile.data;
+    } else {
+      DB.logo = ev.target.result;
+    }
+
+    if (!(await save())) { Swal.close(); return; }
+    Swal.close();
+    renderLogo();
+    if (currentView.type === 'home') renderHome();
+    toast('success', 'อัปเดตโลโก้เรียบร้อย');
+  };
+  reader.onerror = () => {
+    Swal.close();
+    Swal.fire({ icon: 'error', title: 'อัปโหลดไม่สำเร็จ', confirmButtonColor: '#0C7C82' });
+  };
+  reader.readAsDataURL(f);
+  e.target.value = '';
+}
+
+/* =========================================================
+   FULLSCREEN VIEWER
+========================================================= */
+const viewer = document.getElementById('viewer');
+const viewerTitle = document.getElementById('viewerTitle');
+const viewerBody = document.getElementById('viewerBody');
+const viewerExternal = document.getElementById('viewerExternal');
+
+function showViewer() {
+  viewer.classList.remove('hidden');
+  viewer.classList.add('flex');
+  document.body.classList.add('no-scroll');
+}
+
+function closeViewer() {
+  viewer.classList.add('hidden');
+  viewer.classList.remove('flex');
+  viewerBody.innerHTML = '';
+  viewerExternal.classList.add('hidden');
+  document.body.classList.remove('no-scroll');
+}
+
+function openSystem(gid, sid) {
+  const g = DB.groups.find(x => x.id === gid);
+  const s = g?.systems.find(x => x.id === sid);
+  if (!s) return;
+
+  const color = groupColor(gid);
+  viewerTitle.textContent = s.name;
+
+  if (s.url) {
+    const url = normUrl(s.url);
+    viewerExternal.href = url;
+    viewerExternal.classList.remove('hidden');
+    viewerExternal.classList.add('flex');
+
+    viewerBody.innerHTML = `
+      <div class="absolute inset-0 bg-white">
+        <div id="frameLoader" class="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-slate-50 z-10">
+          <div class="w-10 h-10 rounded-full border-[3px] border-slate-200 border-t-[${color}] animate-spin"></div>
+          <p class="text-[12.5px] text-slate-400">กำลังโหลดระบบงาน...</p>
+        </div>
+        <iframe id="sysFrame" src="${esc(url)}" class="w-full h-full border-0 relative z-20"
+          onload="document.getElementById('frameLoader')?.remove()"
+          referrerpolicy="no-referrer" allow="fullscreen"></iframe>
+      </div>`;
+  } else {
+    viewerExternal.classList.add('hidden');
+    viewerExternal.classList.remove('flex');
+    viewerBody.innerHTML = `
+      <div class="absolute inset-0 flex flex-col items-center justify-center gap-3 p-6 text-center bg-slate-50">
+        <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-white" style="background:${color}">
+          ${icon('link', 'w-7 h-7')}
+        </div>
+        <p class="font-bold text-slate-700">ยังไม่มีลิงก์เชื่อมต่อสำหรับระบบงานนี้</p>
+        <p class="text-[12.5px] text-slate-400 max-w-sm">กรุณาติดต่อผู้ดูแลระบบเพื่อเพิ่ม URL ของระบบงาน</p>
+      </div>`;
+  }
+
+  showViewer();
+}
+
+function openCredential(id) {
+  const cr = DB.credentials.find(x => x.id === id);
+  if (!cr) return;
+
+  viewerTitle.textContent = cr.name;
+
+  if (cr.url) {
+    viewerExternal.href = normUrl(cr.url);
+    viewerExternal.classList.remove('hidden');
+    viewerExternal.classList.add('flex');
+  } else {
+    viewerExternal.classList.add('hidden');
+    viewerExternal.classList.remove('flex');
+  }
+
+  const isImg = cr.file && cr.file.type && cr.file.type.startsWith('image');
+
+  viewerBody.innerHTML = `
+    <div class="p-4 sm:p-7 max-w-4xl mx-auto space-y-5 fade-in">
+
+      <div class="bg-white rounded-3xl border border-slate-100 p-5 sm:p-7 shadow-sm">
+        <div class="flex items-start gap-4">
+          <div class="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#4A2C6D] to-[#7E57C2] text-white flex items-center justify-center shrink-0 shadow-lg">
+            ${icon('key', 'w-7 h-7')}
+          </div>
+          <div class="min-w-0 flex-1">
+            <span class="badge bg-purple2/10 text-purple2 mb-1.5">ข้อมูลบัญชีผู้ใช้</span>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-800 leading-snug">${esc(cr.name)}</h2>
+
+            ${cr.url ? `
+              <a href="${esc(normUrl(cr.url))}" target="_blank" rel="noopener"
+                class="inline-flex items-center gap-2 mt-3 px-4 py-2.5 rounded-xl bg-blue2/10 text-blue2 font-semibold text-[12.5px] hover:bg-blue2/20 transition active:scale-95">
+                ${icon('external', 'w-4 h-4')}
+                <span class="truncate max-w-[220px] sm:max-w-md">${esc(cr.url)}</span>
+              </a>` : ''}
+          </div>
+        </div>
+      </div>
+
+      ${cr.file ? `
+        <div class="bg-white rounded-3xl border border-slate-100 p-4 sm:p-6 shadow-sm">
+          <div class="flex items-center gap-2 mb-4">
+            <span class="w-1.5 h-5 rounded-full bg-gradient-to-b from-[#4A2C6D] to-[#7E57C2]"></span>
+            <h3 class="font-bold text-slate-800 text-[14px]">ไฟล์แนบ</h3>
+            <span class="badge bg-lime2/20 text-[#5a8a2c]">${isImg ? 'รูปภาพ' : 'PDF'}</span>
+          </div>
+          ${isImg
+            ? `<img src="${cr.file.data}" class="w-full rounded-2xl border border-slate-100" loading="lazy" alt="${esc(cr.file.name || '')}">`
+            : `<iframe src="${cr.file.data}" class="w-full h-[70vh] rounded-2xl border border-slate-100 bg-slate-50"></iframe>`}
+          <div class="flex items-center justify-between mt-3 pt-3 border-t border-slate-50">
+            <p class="text-[11.5px] text-slate-400 truncate">${esc(cr.file.name || 'ไฟล์แนบ')}</p>
+            <a href="${cr.file.data}" download="${esc(cr.file.name || 'file')}" target="_blank"
+              class="text-[12px] font-semibold text-primary hover:underline shrink-0 ml-3">เปิด / ดาวน์โหลด</a>
+          </div>
+        </div>` : `
+        <div class="bg-white rounded-3xl border border-dashed border-slate-200 py-12 text-center">
+          <div class="w-14 h-14 mx-auto rounded-2xl bg-slate-100 text-slate-300 flex items-center justify-center mb-3">
+            ${icon('doc', 'w-6 h-6')}
+          </div>
+          <p class="text-[13px] text-slate-400 font-medium">ไม่มีไฟล์แนบสำหรับรายการนี้</p>
+        </div>`}
+    </div>`;
+
+  showViewer();
+}
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (!viewer.classList.contains('hidden')) closeViewer();
+    else if (!document.getElementById('modal').classList.contains('hidden')) closeModal();
+    else closeSidebar();
+  }
+});
+
+/* =========================================================
+   INIT
+========================================================= */
+(function init() {
+  renderAuth();
+  renderMenu();
+  renderMobileNav();
+  showSkeleton();
+  syncFromCloud();
+  setTimeout(renderHome, 350);
+})();
+</script>
+</body>
+</html>
