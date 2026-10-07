@@ -62,6 +62,23 @@ tailwind.config = {
 
   .no-scroll { overflow:hidden; }
 
+  /* ===== Drag & Drop styles ===== */
+  .system-card.dragging {
+    opacity: .35;
+    transform: scale(.97) rotate(.5deg);
+    cursor: grabbing !important;
+  }
+  .system-card.drag-over {
+    border-color: #35B4B0 !important;
+    box-shadow: 0 0 0 3px rgba(53,180,176,.22), 0 14px 30px -10px rgba(12,124,130,.35);
+    transform: translateY(-3px);
+  }
+  .system-card .drag-grip {
+    cursor: grab;
+  }
+  .system-card .drag-grip:active {
+    cursor: grabbing;
+  }
   @media (max-width: 1023px) {
     body { padding-bottom: env(safe-area-inset-bottom); }
   }
@@ -173,8 +190,7 @@ tailwind.config = {
 /* =========================================================
    CONFIG & GOOGLE APPS SCRIPT WEB APP API URL
 ========================================================= */
-// วาง URL ของ Google Apps Script Web App ที่ Deploy แล้วลงในตัวแปรนี้
-const GAS_API_URL = "https://script.google.com/macros/s/AKfycbyjYsC77i30WOGipT6LymMYkQYnbJNOy4qw5lfBhMfClD-inN3hsbjLb0jUVHtTycyqrg/exec"; // เช่น "https://script.google.com/macros/s/AKfycbx.../exec"
+const GAS_API_URL = "";
 
 /* =========================================================
    ICONS
@@ -202,7 +218,11 @@ const ICONS = {
   info: '<path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>',
   grid: '<path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z"/>',
   dots: '<path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM12.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0zM18.75 12a.75.75 0 11-1.5 0 .75.75 0 011.5 0z"/>',
-  check: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>'
+  check: '<path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>',
+  /* ===== Icons for reorder feature ===== */
+  arrowUp: '<path stroke-linecap="round" stroke-linejoin="round" d="M4.5 15.75l7.5-7.5 7.5 7.5"/>',
+  arrowDown: '<path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5"/>',
+  grip: '<circle cx="9" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="6" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="9" cy="18" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="18" r="1.5" fill="currentColor" stroke="none"/>'
 };
 
 function icon(name, cls = 'w-5 h-5') {
@@ -281,7 +301,6 @@ async function syncFromCloud() {
 async function save() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(DB));
-    
     if (GAS_API_URL) {
       fetch(GAS_API_URL, {
         method: 'POST',
@@ -302,7 +321,7 @@ async function save() {
 }
 
 async function uploadFileToDrive(fileObj) {
-  if (!GAS_API_URL) return fileObj; // fallback local base64
+  if (!GAS_API_URL) return fileObj;
   try {
     const response = await fetch(GAS_API_URL, {
       method: 'POST',
@@ -374,7 +393,6 @@ function renderMenu() {
   const menu = document.getElementById('menu');
   let html = '';
 
-  // Home
   const homeActive = currentView.type === 'home';
   html += `
     <button onclick="navigate({type:'home'})"
@@ -384,7 +402,6 @@ function renderMenu() {
       <span class="flex-1 text-left">หน้าแรก</span>
     </button>`;
 
-  // Groups
   html += `<div class="pt-2 pb-1 px-3"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">กลุ่มงาน</span></div>`;
 
   DB.groups.forEach(g => {
@@ -419,7 +436,6 @@ function renderMenu() {
       </div>`;
   });
 
-  // Credentials
   html += `<div class="pt-2 pb-1 px-3"><span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">คลังข้อมูล</span></div>`;
   const credActive = currentView.type === 'credentials';
   html += `
@@ -710,7 +726,7 @@ function initCanvas() {
 }
 
 /* =========================================================
-   GROUP PAGE
+   GROUP PAGE  (พร้อมระบบลากสลับตำแหน่ง)
 ========================================================= */
 function renderGroup(gid) {
   const g = DB.groups.find(x => x.id === gid);
@@ -719,6 +735,7 @@ function renderGroup(gid) {
   const color = groupColor(gid);
   const soft = groupSoft(gid);
   const c = document.getElementById('content');
+  const canReorder = isAdmin && g.systems.length > 1;
 
   c.innerHTML = `
   <div class="space-y-5 fade-in">
@@ -730,7 +747,10 @@ function renderGroup(gid) {
         </div>
         <div class="min-w-0">
           <h2 class="text-lg sm:text-xl font-bold text-slate-800 leading-tight">${esc(g.name)}</h2>
-          <p class="text-[12.5px] text-slate-500 mt-0.5">ระบบงานทั้งหมด ${g.systems.length} รายการ</p>
+          <p class="text-[12.5px] text-slate-500 mt-0.5">
+            ระบบงานทั้งหมด ${g.systems.length} รายการ
+            ${canReorder ? '<span class="text-slate-400"> • ลากการ์ดหรือกด ↑↓ เพื่อจัดเรียง</span>' : ''}
+          </p>
         </div>
       </div>
 
@@ -742,8 +762,8 @@ function renderGroup(gid) {
     </div>
 
     ${g.systems.length ? `
-      <div class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
-        ${g.systems.map(s => systemCard(s, g, color, soft)).join('')}
+      <div id="systemsGrid" class="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">
+        ${g.systems.map((s, i) => systemCard(s, g, color, soft, i, g.systems.length)).join('')}
       </div>
     ` : `
       <div class="bg-white rounded-3xl border border-dashed border-slate-200 py-14 px-6 text-center">
@@ -755,17 +775,53 @@ function renderGroup(gid) {
       </div>
     `}
   </div>`;
+
+  if (isAdmin) initSystemDragDrop();
 }
 
-function systemCard(s, g, color, soft) {
+function systemCard(s, g, color, soft, index, total) {
+  const isFirst = index === 0;
+  const isLast  = index === total - 1;
+
+  // ปุ่มควบคุมการจัดเรียง (เฉพาะ Admin)
+  const controls = isAdmin ? `
+    <div class="absolute top-2 right-2 z-20 flex flex-col gap-0.5 bg-white/95 backdrop-blur rounded-xl border border-slate-200 shadow-sm p-0.5"
+         onclick="event.stopPropagation()">
+      <button type="button" draggable="false"
+        onclick="event.stopPropagation(); moveSystem('${g.id}','${s.id}',-1)"
+        ${isFirst ? 'disabled' : ''}
+        title="เลื่อนขึ้น"
+        class="w-7 h-7 rounded-lg flex items-center justify-center transition
+               ${isFirst ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 hover:bg-primary/10 hover:text-primary active:scale-90'}">
+        ${icon('arrowUp', 'w-3.5 h-3.5')}
+      </button>
+      <div class="w-7 h-5 flex items-center justify-center text-slate-300 cursor-grab active:cursor-grabbing drag-grip" title="ลากเพื่อย้ายตำแหน่ง">
+        ${icon('grip', 'w-3.5 h-3.5')}
+      </div>
+      <button type="button" draggable="false"
+        onclick="event.stopPropagation(); moveSystem('${g.id}','${s.id}',1)"
+        ${isLast ? 'disabled' : ''}
+        title="เลื่อนลง"
+        class="w-7 h-7 rounded-lg flex items-center justify-center transition
+               ${isLast ? 'text-slate-200 cursor-not-allowed' : 'text-slate-500 hover:bg-primary/10 hover:text-primary active:scale-90'}">
+        ${icon('arrowDown', 'w-3.5 h-3.5')}
+      </button>
+    </div>` : '';
+
   return `
-  <div class="group relative bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer overflow-hidden"
-       onclick="openSystem('${g.id}','${s.id}')">
+  <div class="system-card group relative bg-white rounded-2xl border border-slate-100 p-4 sm:p-5 shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden
+              ${isAdmin ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer hover:-translate-y-1'}"
+       ${isAdmin ? 'draggable="true"' : ''}
+       data-sid="${s.id}"
+       data-gid="${g.id}"
+       onclick="onSystemCardClick(event, '${g.id}', '${s.id}')">
 
     <div class="absolute inset-x-0 top-0 h-1" style="background:linear-gradient(90deg,${color},${color}55)"></div>
 
-    <div class="flex items-start gap-3">
-      <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm" style="background:${color}">
+    ${controls}
+
+    <div class="flex items-start gap-3 ${isAdmin ? 'pr-9' : ''}">
+      <div class="w-11 h-11 rounded-xl flex items-center justify-center text-white shrink-0 shadow-sm pointer-events-none" style="background:${color}">
         ${icon('link', 'w-5 h-5')}
       </div>
       <div class="flex-1 min-w-0 pt-0.5">
@@ -798,6 +854,133 @@ function systemCard(s, g, color, soft) {
         </span>`}
     </div>
   </div>`;
+}
+
+/* =========================================================
+   🔀 DRAG & DROP + REORDER SYSTEM
+========================================================= */
+const dragState = { el: null, gid: null, sid: null, ignoreClick: false };
+
+function initSystemDragDrop() {
+  const grid = document.getElementById('systemsGrid');
+  if (!grid) return;
+
+  grid.querySelectorAll('.system-card[draggable="true"]').forEach(card => {
+    card.addEventListener('dragstart', handleCardDragStart);
+    card.addEventListener('dragover',  handleCardDragOver);
+    card.addEventListener('dragenter', handleCardDragEnter);
+    card.addEventListener('dragleave', handleCardDragLeave);
+    card.addEventListener('drop',      handleCardDrop);
+    card.addEventListener('dragend',   handleCardDragEnd);
+  });
+}
+
+function handleCardDragStart(e) {
+  // ป้องกันการลากจากปุ่ม/ลิงก์/input ภายใน
+  if (e.target.closest('button, a, input, select, textarea')) {
+    e.preventDefault();
+    return false;
+  }
+  dragState.el = this;
+  dragState.gid = this.dataset.gid;
+  dragState.sid = this.dataset.sid;
+  dragState.ignoreClick = true;
+
+  this.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+  e.dataTransfer.setData('text/plain', this.dataset.sid);
+  try { e.dataTransfer.setData('application/x-bmk-sid', this.dataset.sid); } catch (_) {}
+}
+
+function handleCardDragOver(e) {
+  if (!dragState.el || this === dragState.el) return;
+  if (this.dataset.gid !== dragState.gid) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+}
+
+function handleCardDragEnter(e) {
+  if (!dragState.el || this === dragState.el) return;
+  if (this.dataset.gid !== dragState.gid) return;
+  e.preventDefault();
+  this.classList.add('drag-over');
+}
+
+function handleCardDragLeave() {
+  this.classList.remove('drag-over');
+}
+
+async function handleCardDrop(e) {
+  e.preventDefault();
+  e.stopPropagation();
+  this.classList.remove('drag-over');
+
+  if (!dragState.el || this === dragState.el) return false;
+  if (this.dataset.gid !== dragState.gid) return false;
+
+  const srcSid = dragState.sid;
+  const tgtSid = this.dataset.sid;
+  const gid    = dragState.gid;
+
+  if (srcSid === tgtSid) return false;
+
+  // เคลียร์คลาสทันที
+  document.querySelectorAll('.system-card').forEach(c => c.classList.remove('dragging', 'drag-over'));
+
+  await moveSystemToPosition(gid, srcSid, tgtSid);
+  return false;
+}
+
+function handleCardDragEnd() {
+  document.querySelectorAll('.system-card').forEach(c => {
+    c.classList.remove('dragging', 'drag-over');
+  });
+  setTimeout(() => { dragState.ignoreClick = false; }, 180);
+  dragState.el = null;
+}
+
+function onSystemCardClick(event, gid, sid) {
+  // ถ้าเพิ่งลากเสร็จ ให้ข้ามการคลิกครั้งนั้น
+  if (dragState.ignoreClick) {
+    event.preventDefault();
+    event.stopPropagation();
+    return;
+  }
+  openSystem(gid, sid);
+}
+
+/** ย้าย srcId ไปวางที่ตำแหน่งของ tgtId (insert) */
+async function moveSystemToPosition(gid, srcId, tgtId) {
+  const g = DB.groups.find(x => x.id === gid);
+  if (!g) return;
+  const srcIdx = g.systems.findIndex(s => s.id === srcId);
+  const tgtIdx = g.systems.findIndex(s => s.id === tgtId);
+  if (srcIdx < 0 || tgtIdx < 0 || srcIdx === tgtIdx) return;
+
+  const [item] = g.systems.splice(srcIdx, 1);
+  g.systems.splice(tgtIdx, 0, item);
+
+  if (!(await save())) return;
+  renderMenu();
+  renderGroup(gid);
+  toast('success', 'จัดเรียงลำดับเรียบร้อย');
+}
+
+/** เลื่อนขึ้น/ลงทีละ 1 ตำแหน่ง */
+async function moveSystem(gid, sid, delta) {
+  const g = DB.groups.find(x => x.id === gid);
+  if (!g) return;
+  const idx = g.systems.findIndex(s => s.id === sid);
+  if (idx < 0) return;
+  const newIdx = idx + delta;
+  if (newIdx < 0 || newIdx >= g.systems.length) return;
+
+  const [item] = g.systems.splice(idx, 1);
+  g.systems.splice(newIdx, 0, item);
+
+  if (!(await save())) return;
+  renderMenu();
+  renderGroup(gid);
 }
 
 /* =========================================================
@@ -931,7 +1114,6 @@ function openModal(opts) {
     if (first) first.focus();
   }, 120);
 
-  // Enter key submit
   const body = document.getElementById('modalBody');
   body.onkeydown = e => {
     if (e.key === 'Enter' && e.target.tagName === 'INPUT') {
@@ -1231,7 +1413,6 @@ function openCredentialForm(id) {
 
       let uploadedFileObj = tempUpload;
       if (tempUpload && tempUpload.data && tempUpload.data.startsWith('data:')) {
-        // Upload to Google Drive if connected
         uploadedFileObj = await uploadFileToDrive(tempUpload);
       }
 
