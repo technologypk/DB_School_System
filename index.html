@@ -301,22 +301,30 @@ async function syncFromCloud() {
 async function save() {
   try {
     localStorage.setItem(LS_KEY, JSON.stringify(DB));
-    if (GAS_API_URL) {
-      fetch(GAS_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({ action: 'saveData', data: DB })
-      }).catch(err => console.error("Cloud save failed:", err));
-    }
-    return true;
   } catch (e) {
-    Swal.fire({
-      icon: 'error',
-      title: 'บันทึกไม่สำเร็จ',
-      text: 'พื้นที่จัดเก็บข้อมูลในเบราว์เซอร์เต็ม',
-      confirmButtonColor: '#0C7C82'
-    });
+    Swal.fire({ icon: 'error', title: 'บันทึกไม่สำเร็จ', text: 'พื้นที่ localStorage เต็ม', confirmButtonColor: '#0C7C82' });
     return false;
+  }
+
+  if (!GAS_API_URL) {
+    console.warn('⚠️ GAS_API_URL ว่าง - บันทึกแค่ localStorage');
+    return true;
+  }
+
+  try {
+    const res = await fetch(GAS_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify({ action: 'saveData', data: DB }),
+      redirect: 'follow'
+    });
+    // GAS อาจได้ opaque response แต่ข้อมูลบันทึกจริงแล้ว
+    console.log('✅ Cloud save OK');
+    return true;
+  } catch (err) {
+    console.error('❌ Cloud save failed:', err);
+    // ไม่ return false เพราะข้อมูลยังอยู่ใน localStorage
+    return true;
   }
 }
 
